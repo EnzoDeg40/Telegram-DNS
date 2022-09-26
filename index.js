@@ -97,6 +97,20 @@ function createRecord(name, address) {
     return [true, name + " added"];
 }
 
+// Function called when command /remove is used
+// Bug in fonction
+function removeRecord(name) {
+    // Check if the name is in the records
+    const record = records.find(([recordName]) => recordName === name);
+    if (record) {
+        records = records.filter(([recordName]) => recordName !== name);
+        return name + " has removed from DNS";
+    }
+    else{
+        return "This record does not exists. Check /list to see existing records.";
+    }
+}
+
 function resolveMessage(message){
     const [command, name, address] = message.split(' ');
 
@@ -104,6 +118,11 @@ function resolveMessage(message){
     if(command === '/add'){
         const [success, response] = createRecord(name, address);
         return response;
+    }
+
+    // REMOVE
+    if(command === '/remove'){
+        return removeRecord(name);
     }
 
     // TDLS
@@ -145,10 +164,13 @@ bot.onText(/\/echo (.+)/, (msg, match) => {
     // 'match' is the result of executing the regexp above on the text content
     // of the message
     bot.setMyCommands([
-        { command: '/add', description: 'Add a new record'},
-        { command: '/resolve', description: 'Resolve a record'},
-        { command: '/list', description: 'List all records' },
-        { command: '/help', description: 'Show this message' }
+        { command: 'add', description: 'Add a new record' },
+        { command: 'resolve', description: 'Resolve a record' },
+        { command: 'list', description: 'List all records' },
+        { command: 'help', description: 'Show this message' },
+        { command: 'tdls', description: 'Show the list of TLDs' },
+        { command: 'remove', description: 'Remove a record' },
+        { command: 'rickroll', description: 'Rickroll' }
     ]);
 
     const chatId = msg.chat.id;
@@ -157,13 +179,6 @@ bot.onText(/\/echo (.+)/, (msg, match) => {
     // send back the matched "whatever" to the chat
     bot.sendMessage(chatId, resp);
 });
-
-/*bot.setMyCommands([
-    { command: '/add', description: 'Add a new record' },
-    { command: '/resolve', description: 'Resolve a record' },
-    { command: '/list', description: 'List all records' },
-    { command: '/help', description: 'Show this message' },
-]);*/
 
 // Listen for any kind of message. There are different kinds of
 // messages.
