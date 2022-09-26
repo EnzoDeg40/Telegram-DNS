@@ -5,6 +5,9 @@ const TelegramBot = require('node-telegram-bot-api');
 const { Packet } = dns2;
 
 var records = [];
+if (process.env.PERMANENT_RECORDS){
+    records = JSON.parse(process.env.PERMANENT_RECORDS);
+}
 
 var tld = [
     ['peach', '🍑'],
@@ -43,7 +46,7 @@ function resolveRecord(name) {
     }
     else{
         //return '1.1.1.1';
-        return 'This reccord does not exists. Use /add to add it';
+        return 'This record does not exists. Use /add to add it';
     }
 }
 
@@ -66,18 +69,18 @@ function createRecord(name, address) {
     
     // Check if domain has only one dot
     if(name.split('.').length !== 2){
-        return [false, "The reccord must have only one dot"];
+        return [false, "The record must have only one dot"];
     }
 
     // Check if domain has a valid TLD
     if(!tld.find(([tldName]) => tldName === name.split('.')[1])){
-        return [false, "The reccord must have a valid TLD, check /tdls to see the list of valid TLDs"];
+        return [false, "The record must have a valid TLD, check /tdls to see the list of valid TLDs"];
     }
 
     // Check if the name is in the records
     const record = records.find(([recordName]) => recordName === name);
     if (record) {
-        return [false, "This reccord already exists. Use /resolve to get the address"];
+        return [false, "This record already exists. Use /resolve to get the address"];
     }
 
     // Check if address as only numbers and letters and dots
@@ -115,7 +118,17 @@ function resolveMessage(message){
 
     // LIST
     if(command === '/list'){
+        // If list is empty
+        if(records.length === 0){
+            return "No records in the list. Use /add to add a record";
+        }
+
         return records.map(([name, address]) => `${name} -> ${address}`).join('\n');
+    }
+
+    // RICKROLL
+    if(command === '/rickroll'){
+        return "https://www.youtube.com/watch?v=dQw4w9WgXcQ";
     }
 
     // HELP

@@ -7,6 +7,11 @@ Create .env file with the following content. You can get the token from [@BotFat
 BOT_TOKEN="telegram_bot_token"
 ```
 
+Optionally, you can also create permanent recording by adding the following to the .env file.
+```bash
+PERMANENT_RECORDS=[["example.apple", "192.168.0.42"],["example.pear", "192.168.0.69"]]
+```
+
 Install dependencies:
 ```bash
 npm install
