@@ -4,9 +4,17 @@ const TelegramBot = require('node-telegram-bot-api');
 
 const { Packet } = dns2;
 
-
 var records = [];
 
+var tld = [
+    ['peach', '🍑'],
+    ['orange', '🍊'], 
+    ['apple', '🍎'],
+    ['banana', '🍌'], 
+    ['pear', '🍐'] 
+];
+
+// Initalize Telegram Bot with token in .env file
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
 const dns = dns2.createServer({
@@ -26,6 +34,7 @@ const dns = dns2.createServer({
     }
 });
 
+// Function called when command /resolve is used
 function resolveRecord(name) {
     // Check if the name is in the records
     const record = records.find(([recordName]) => recordName === name);
@@ -33,58 +42,89 @@ function resolveRecord(name) {
         return record[1];
     }
     else{
-        return '1.1.1.1';
+        //return '1.1.1.1';
+        return 'This reccord does not exists. Use /add to add it';
     }
 }
 
+// Function called when command /add is used
 function createRecord(name, address) {
+    // If name and address are not provided
+    if(!name || !address){
+        return [ false, `/add <name>.<tld> <address>\nExample: /add edstudio.peach 192.168.0.15\nUse /tdls to see the list of TLDs avaible`];
+    }
+
+    // Limit the size of the record to 64 characters
+    if(name.length > 64){
+        return [ false, 'The name is too long, please use a shorter name'];
+    }
+
+    // Limit the size of the record to 64 characters
+    if(address.length > 64){
+        return [ false, 'The address is too long, please use a shorter address'];
+    }
+    
+    // Check if domain has only one dot
+    if(name.split('.').length !== 2){
+        return [false, "The reccord must have only one dot"];
+    }
+
+    // Check if domain has a valid TLD
+    if(!tld.find(([tldName]) => tldName === name.split('.')[1])){
+        return [false, "The reccord must have a valid TLD, check /tdls to see the list of valid TLDs"];
+    }
+
     // Check if the name is in the records
     const record = records.find(([recordName]) => recordName === name);
     if (record) {
-        return false;
+        return [false, "This reccord already exists. Use /resolve to get the address"];
     }
-    else{
-        records.push([name, address]);
-        return true;
+
+    // Check if address as only numbers and letters and dots
+    if(!address.match(/^[a-zA-Z0-9.]+$/)){
+        return [false, "invalid"];
     }
+
+    // lowercase name and address
+    name = name.toLowerCase();
+    address = address.toLowerCase();
+
+    // Record is valid, add it to the records
+    records.push([name, address]);
+    return [true, name + " added"];
 }
 
 function resolveMessage(message){
     const [command, name, address] = message.split(' ');
-    
+
     // ADD
     if(command === '/add'){
-        if(createRecord(name, address)){
-            return `Record ${name} added with address ${address}`;
-        }
-        else{
-            return `Record ${name} already exists`;
-        }
+        const [success, response] = createRecord(name, address);
+        return response;
+    }
+
+    // TDLS
+    if(command === '/tdls'){
+        return "List of TDLs avaible :\n" + tld.map(([tldName, tldEmoji]) => `.${tldName} ${tldEmoji}`).join('\n');
     }
 
     // RESOLVE
-    else if(command === '/resolve'){
+    if(command === '/resolve'){
         return resolveRecord(name);
     }
 
     // LIST
-    else if(command === '/list'){
+    if(command === '/list'){
         return records.map(([name, address]) => `${name} -> ${address}`).join('\n');
     }
 
     // HELP
-    else if(command === '/help'){
-        return `Commands:
+    return `Commands:
         /add <name> <address> - Add a new record
         /resolve <name> - Resolve a record
         /list - List all records
         /help - Show this message`;
-    }
     
-    // END
-    else{
-        return 'Invalid command';
-    }
 }
 
 bot.onText(/\/echo (.+)/, (msg, match) => {
