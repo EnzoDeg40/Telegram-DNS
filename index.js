@@ -31,14 +31,14 @@ const dns = dns2.createServer({
             type: Packet.TYPE.A,
             class: Packet.CLASS.IN,
             ttl: 300,
-            address: resolveName(name)
+            address: solveName(name)
         });
         send(response);
     }
 });
 
 // Function called when command /resolve is used
-function resolveRecord(name) {
+function solveRecord(name) {
     // Check if the name is in the records
     const record = records.find(([recordName]) => recordName === name);
     if (record) {
@@ -132,7 +132,7 @@ function resolveMessage(message){
 
     // RESOLVE
     if(command === '/resolve'){
-        return resolveRecord(name);
+        return solveRecord(name);
     }
 
     // LIST
