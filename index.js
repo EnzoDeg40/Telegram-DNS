@@ -31,22 +31,26 @@ const dns = dns2.createServer({
             type: Packet.TYPE.A,
             class: Packet.CLASS.IN,
             ttl: 300,
-            address: solveName(name)
+            address: solveRecord(name, "dns")
         });
         send(response);
     }
 });
 
-// Function called when command /resolve is used
-function solveRecord(name) {
+// Function called when command /resolve is used or DNS request is made
+function solveRecord(name, format) {
     // Check if the name is in the records
     const record = records.find(([recordName]) => recordName === name);
     if (record) {
         return record[1];
     }
     else{
-        //return '1.1.1.1';
-        return 'This record does not exists. Use /add to add it';
+        if(format == "dns"){
+            return '1.1.1.1';
+        }
+        else{
+            return 'This record does not exists. Use /add to add it';
+        }
     }
 }
 
@@ -132,7 +136,7 @@ function resolveMessage(message){
 
     // RESOLVE
     if(command === '/resolve'){
-        return solveRecord(name);
+        return solveRecord(name, "telegram");
     }
 
     // LIST
@@ -207,17 +211,15 @@ dns.on('close', () => {
     console.log('dns closed');
 });
 
-dns.listen(53);
-
-/*dns.listen({
+dns.listen({
     udp: {
-        port: 5333,
+        port: process.env.DNS_PORT || 53,
         type: "udp4",  
     },
     tcp: {
-        port: 5333,
+        port: process.env.DNS_PORT || 53,
     },
-});*/
+});
 
 // eventually
 //dns.close();
